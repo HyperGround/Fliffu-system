@@ -1,14 +1,36 @@
-// LivePrice.js
+function getPrice(symbol) {
+  let url;
 
-function getPrice(symbol) { // Convert symbol to Yahoo format const yahooSymbol = formatToYahooSymbol(symbol); const url = "https://query1.finance.yahoo.com/v8/finance/chart/" + yahooSymbol + "?interval=1m&range=1d";
+  if(symbol === "XAUUSD"){
+    url = "https://www.investing.com/currencies/xau-usd";
+  } else {
+    Bot.sendMessage("❌ نرخە زنده بۆ ئەم جووتە دراوە نییە: " + symbol);
+    return null;
+  }
 
-const response = HTTP.get(url); if (!response || !response.body) { throw new Error("✖️ وەڵامی بەتاڵ هاتووە (No response)"); }
+  try {
+    const res = HTTP.get({
+      url: url,
+      headers: {
+        "User-Agent": "Mozilla/5.0"
+      }
+    });
 
-const json = JSON.parse(response.body); try { const result = json.chart.result[0]; const lastClose = result.indicators.quote[0].close.pop(); if (!lastClose) { throw new Error("✖️ ناتوانرێت نرخ بخوێندرێتەوە (No close data)"); } return parseFloat(lastClose); } catch (e) { throw new Error("✖️ کێشە لە خوێندنی نرخ: " + e.message); } }
+    const html = res.body;
 
-function formatToYahooSymbol(symbol) { // Example: XAUUSD -> XAUUSD=X const pairs = { "XAUUSD": "XAUUSD=X", "EURUSD": "EURUSD=X", "USDJPY": "JPY=X", "BTCUSD": "BTC-USD", "ETHUSD": "ETH-USD" // Add more as needed };
+    // Regex بە هۆشیاری نرخەکە دەگرێت
+    const match = html.match(/instrument-price-last">([0-9.,]+)/);
+    if (!match) throw new Error("❌ ناتوانرێت نرخ بدۆزمەوە.");
 
-return pairs[symbol] || (symbol + "=X"); }
+    const price = parseFloat(match[1].replace(",", ""));
+    return price;
 
-publish({ getPrice: getPrice });
+  } catch (e) {
+    Bot.sendMessage("❌ کێشە لە LivePrice:\n" + e.message);
+    return null;
+  }
+}
 
+publish({
+  getPrice
+});
