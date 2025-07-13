@@ -1,6 +1,6 @@
 /*CMD
   command: /testPrice
-  help: test live price
+  help: test price fetch
   need_reply: false
   auto_retry_time:
   folder:
@@ -9,10 +9,10 @@
   aliases:
 CMD*/
 
-let price = Libs.LivePrice.getPrice("XAUUSD");
+let p = Libs.LivePrice.getPrice("XAU/USD"); // ئەمە دەکرێت ETH/USD، EUR/USD، BTC/USD...
 
-if (!price) {
-  Bot.sendMessage("❌ ناتوانرایەوە نرخی زنده بۆ XAUUSD");
+if (!p) {
+  Bot.sendMessage("❌ ناتوانرێت نرخی زنده بخوێندرێتەوە.");
 } else {
-  Bot.sendMessage("✅ نرخی زنده XAUUSD: " + price);
+  Bot.sendMessage("📈 نرخی زنده XAU/USD: " + p);
 }
