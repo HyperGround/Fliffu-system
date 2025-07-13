@@ -1,38 +1,14 @@
-// lib/LivePrice.js
+// LivePrice.js
 
-// ✅ نوسرا بۆ TwelveData - نرخی ڕاستەوخۆ
-// 🌐 API Docs: https://twelvedata.com/docs#price
+function getPrice(symbol) { // Convert symbol to Yahoo format const yahooSymbol = formatToYahooSymbol(symbol); const url = "https://query1.finance.yahoo.com/v8/finance/chart/" + yahooSymbol + "?interval=1m&range=1d";
 
-const TD_API_KEY = "3d3bcaf515d34107b07d81ef9ac48af9"; // API Keyەکەت لێرە دانێ
+const response = HTTP.get(url); if (!response || !response.body) { throw new Error("✖️ وەڵامی بەتاڵ هاتووە (No response)"); }
 
-function getPrice(symbol) {
-  var url = "https://api.twelvedata.com/price?symbol=" + symbol + "&apikey=" + TD_API_KEY;
+const json = JSON.parse(response.body); try { const result = json.chart.result[0]; const lastClose = result.indicators.quote[0].close.pop(); if (!lastClose) { throw new Error("✖️ ناتوانرێت نرخ بخوێندرێتەوە (No close data)"); } return parseFloat(lastClose); } catch (e) { throw new Error("✖️ کێشە لە خوێندنی نرخ: " + e.message); } }
 
-  try {
-    let res = HTTP.get({ url: url });
-    if (!res || !res.body) {
-      throw new Error("✖️ وەڵامی بەتاڵ هاتووە");
-    }
+function formatToYahooSymbol(symbol) { // Example: XAUUSD -> XAUUSD=X const pairs = { "XAUUSD": "XAUUSD=X", "EURUSD": "EURUSD=X", "USDJPY": "JPY=X", "BTCUSD": "BTC-USD", "ETHUSD": "ETH-USD" // Add more as needed };
 
-    let data = JSON.parse(res.body);
+return pairs[symbol] || (symbol + "=X"); }
 
-    if (data.status === "error") {
-      throw new Error("API Error: " + data.message);
-    }
+publish({ getPrice: getPrice });
 
-    if (data && data.price) {
-      return parseFloat(data.price);
-    } else {
-      throw new Error("✖️ ناتوانرێ نرخ بخوێندرێتەوە");
-    }
-
-  } catch (err) {
-    Bot.sendMessage("❌ هەڵە لە LivePrice:\n" + err.message);
-    return null;
-  }
-}
-
-// 📤 بەشکردنی فانکشنی getPrice بۆ بەکارهێنان لە کۆمڕاندەکاندا
-publish({
-  getPrice: getPrice
-});
