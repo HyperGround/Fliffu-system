@@ -12,10 +12,7 @@ let keys = [
     { title: "EURUSD", command: "EURUSD" }
   ],
   [
-    { title: "ETHUSD", command: "ETHUSD" },
-    { title: "JPYUSD", command: "JPYUSD" }
-  ],
-  [
+    { title: "JPYUSD", command: "JPYUSD" },
     { title: "BTCUSD", command: "BTCUSD" },
     { title: "ETC.", command: "ETC." }
   ]
