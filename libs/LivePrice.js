@@ -1,36 +1,44 @@
-function getPrice(symbol) {
-  let url;
+let LivePrice = {
+  getPrice: function (symbol) {
+    let url;
 
-  if(symbol === "XAUUSD"){
-    url = "https://www.investing.com/currencies/xau-usd";
-  } else {
-    Bot.sendMessage("❌ نرخە زنده بۆ ئەم جووتە دراوە نییە: " + symbol);
-    return null;
-  }
+    if (symbol === "XAUUSD") {
+      url = "https://www.investing.com/commodities/gold";
+    } else if (symbol === "EURUSD") {
+      url = "https://www.investing.com/currencies/eur-usd";
+    } else if (symbol === "ETHUSD") {
+      url = "https://www.investing.com/crypto/ethereum/eth-usd";
+    } else if (symbol === "JPYUSD") {
+      url = "https://www.investing.com/currencies/usd-jpy";
+    } else {
+      Bot.sendMessage("❌ Asset نادیاریە. تەنها XAUUSD, EURUSD, ETHUSD, JPYUSD بەردەستە.");
+      return null;
+    }
 
-  try {
-    const res = HTTP.get({
+    let html = HTTP.get({
       url: url,
-      headers: {
-        "User-Agent": "Mozilla/5.0"
-      }
+      success: "/onPriceLoaded",
+      error: "/onPriceError",
+      async: false
     });
 
-    const html = res.body;
+    if (!html || !html.body) {
+      Bot.sendMessage("❌ کێشەی داواکاری: هیچ وەڵامێک نەهاتووە.");
+      return null;
+    }
 
-    // Regex بە هۆشیاری نرخەکە دەگرێت
-    const match = html.match(/instrument-price-last">([0-9.,]+)/);
-    if (!match) throw new Error("❌ ناتوانرێت نرخ بدۆزمەوە.");
-
-    const price = parseFloat(match[1].replace(",", ""));
-    return price;
-
-  } catch (e) {
-    Bot.sendMessage("❌ کێشە لە LivePrice:\n" + e.message);
-    return null;
+    // Regex لەسەر ڕووکاری HTML بۆ دۆزینەوەی نرخ
+    let match = html.body.match(/data-test="instrument-price-last">([^<]+)</);
+    if (match && match[1]) {
+      let price = parseFloat(match[1].replace(/,/g, ""));
+      return price;
+    } else {
+      Bot.sendMessage("❌ ناتوانرێت نرخەکە بدۆزرێتەوە.");
+      return null;
+    }
   }
 }
 
 publish({
-  getPrice
+  getPrice: LivePrice.getPrice
 });
